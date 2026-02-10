@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Linguist Blueprint v2.5</title>
+    <title>Floating Linguist Engine</title>
     <style>
         :root {
             --bg: #f5f5f0;
@@ -16,7 +16,7 @@
 
         * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
         body { background-color: var(--bg); color: var(--dark); padding: 20px; margin: 0; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 850px; }
+        .container { width: 100%; max-width: 900px; }
         
         .blueprint-card {
             background: white;
@@ -31,32 +31,30 @@
         
         button { background-color: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background-color: var(--dark); }
-        button:active { transform: translate(3px, 3px); box-shadow: none; }
 
-        .schematic-box { background: #fff; border-left: 10px solid var(--accent); padding: 20px; margin-top: 20px; }
-        .english-sentence { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-bottom: 10px; font-family: 'Georgia', serif; }
-        
-        /* فرمول ساده */
-        .formula-display {
-            background: var(--dark);
-            color: #ecf0f1;
-            padding: 10px 15px;
-            font-family: 'Courier New', monospace;
-            font-size: 1.2rem;
-            display: inline-block;
-            direction: ltr;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            font-weight: bold;
+        /* Mermaid Flowchart Styling */
+        #flowchartOutput {
+            margin-top: 20px;
+            background: #fff;
+            padding: 10px;
+            border: 1px solid #ccc;
+            overflow: auto; /* قابلیت اسکرول شناور */
         }
 
-        .parts-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .part-item { background: #eee; border: 1px solid var(--dark); padding: 5px 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
-        .part-item b { color: var(--accent); }
+        .beginner-panel {
+            background: #fdfdfd;
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 15px;
+            font-size: 1.1rem;
+            line-height: 1.7;
+        }
+        .beginner-panel b { color: var(--primary); }
 
         .loader { display: none; text-align: center; font-weight: bold; color: var(--accent); margin: 15px 0; }
-        .console { background: #111; color: #0f0; font-family: 'Consolas', monospace; padding: 10px; font-size: 0.8rem; height: 100px; overflow-y: auto; direction: ltr; }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>mermaid.initialize({startOnLoad:false});</script>
 </head>
 <body>
 
@@ -67,54 +65,42 @@
     </div>
 
     <div class="blueprint-card">
-        <h1>کالبدشکافی فنی جمله</h1>
-        <textarea id="userInput" rows="3" placeholder="مثلاً: به تو گفته بودم"></textarea>
-        <button onclick="generateBlueprint()">دریافت نقشه ساخت (Generate Blueprint)</button>
-        <div id="loader" class="loader">در حال آنالیز مکانیکِ جمله...</div>
+        <h1>نقشه ساخت جمله</h1>
+        <textarea id="userInput" rows="2" placeholder="مثلاً: به تو گفته بودم"></textarea>
+        <button onclick="generateFlowchart()">نمایشِ نقشه (Show Flowchart)</button>
+        <div id="loader" class="loader">در حالِ ترسیمِ فلوچارت...</div>
     </div>
 
     <div id="outputArea" style="display: none;">
         <div class="blueprint-card">
-            <h2>شماتیکِ نهایی (The Schematic)</h2>
-            <div class="schematic-box">
-                <div class="english-sentence" id="engSent" dir="ltr"></div>
-                <div class="formula-display" id="formulaDisp"></div>
-                
-                <h3>قطعات اولیه (Vocab)</h3>
-                <div id="partsList" class="parts-list"></div>
-            </div>
+            <h2>فلوچارتِ شناورِ جمله</h2>
+            <div id="flowchartOutput" class="mermaid"></div>
+            
+            <h3>چطوری کار میکنه؟</h3>
+            <div id="beginnerAnalysis" class="beginner-panel"></div>
         </div>
-    </div>
-
-    <div class="blueprint-card" style="border-color: var(--accent);">
-        <h2 style="font-size: 0.9rem;">System Diagnostics</h2>
-        <div id="console" class="console">> Engine Ready...</div>
     </div>
 </div>
 
 <script>
-    const log = (m) => { const c = document.getElementById('console'); c.innerHTML += `<br>> ${m}`; c.scrollTop = c.scrollHeight; };
-
-    async function generateBlueprint() {
+    async function generateFlowchart() {
         const key = document.getElementById('apiKey').value;
         const text = document.getElementById('userInput').value;
         if(!key || !text) return alert("ورودی‌ها را بررسی کنید.");
 
         document.getElementById('loader').style.display = "block";
         document.getElementById('outputArea').style.display = "none";
-        log("Initiating sequence for model: gemini-2.5-flash");
 
         const prompt = `
         Analyze the Persian sentence: "${text}".
-        Perform a structural deconstruction focusing on time formulas.
+        Explain the English structure to a beginner (Tabula Rasa).
+        1. Produce a Mermaid.js flowchart code to visualize the structure (use nodes for Subject, Had/Lanchor, V-pp/Action).
+        2. Explain the flowchart using simple metaphors like 'knots in a rope', 'boxes', 'toy blocks'.
         Return ONLY a JSON object:
         {
             "english": "The full English translation",
-            "formula": "A simple grammatical formula (e.g., Had + p.p, Verb + ed, Is + V-ing)",
-            "vocab_parts": [
-                {"word": "word1", "role": "part of speech"},
-                {"word": "word2", "role": "part of speech"}
-            ]
+            "mermaid_code": "graph TD\n...",
+            "simple_story": "Explain the flowchart metaphorically."
         }`;
 
         try {
@@ -128,31 +114,24 @@
             
             if (data.candidates && data.candidates[0]) {
                 const cleanJson = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, ''));
-                renderBlueprint(cleanJson);
-                log("Blueprint generated successfully.");
-            } else {
-                log("Error: " + (data.error ? data.error.message : "Invalid response"));
+                renderFlowchartUI(cleanJson);
             }
         } catch (e) {
-            log("Critical Failure: " + e.message);
+            alert("خطا: " + e.message);
         } finally {
             document.getElementById('loader').style.display = "none";
         }
     }
 
-    function renderBlueprint(data) {
+    function renderFlowchartUI(data) {
         document.getElementById('outputArea').style.display = "block";
-        document.getElementById('engSent').innerText = data.english;
-        document.getElementById('formulaDisp').innerText = data.formula;
-
-        const partsDiv = document.getElementById('partsList');
-        partsDiv.innerHTML = '';
-        data.vocab_parts.forEach(p => {
-            const item = document.createElement('div');
-            item.className = 'part-item';
-            item.innerHTML = `<b>${p.word}</b> : <i>${p.role}</i>`;
-            partsDiv.appendChild(item);
-        });
+        
+        // نمایش کد Mermaid در محیط گرافیکی
+        const container = document.getElementById('flowchartOutput');
+        container.innerHTML = data.mermaid_code;
+        mermaid.init(undefined, container);
+        
+        document.getElementById('beginnerAnalysis').innerHTML = data.simple_story;
     }
 </script>
 </body>
