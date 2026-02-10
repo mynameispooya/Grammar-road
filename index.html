@@ -7,8 +7,8 @@
     <style>
         :root {
             --bg: #f5f5f0;
-            --primary: #5b705b; /* سبز زیتونی تیره برای حس پایداری */
-            --accent: #d99a7d;  /* مسی مات */
+            --primary: #5b705b;
+            --accent: #d99a7d;
             --dark: #2c3e50;
             --border: 2px solid var(--dark);
             --shadow: 5px 5px 0px var(--dark);
@@ -18,7 +18,6 @@
         body { background-color: var(--bg); color: var(--dark); padding: 20px; margin: 0; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 850px; }
         
-        /* Brutalist Layout */
         .blueprint-card {
             background: white;
             border: var(--border);
@@ -28,72 +27,35 @@
         }
 
         h1 { font-size: 1.5rem; text-transform: uppercase; border-bottom: 4px solid var(--primary); padding-bottom: 10px; margin-top: 0; color: var(--primary); }
-        
         textarea, input, button { width: 100%; padding: 15px; margin-top: 15px; border: var(--border); font-size: 1.1rem; outline: none; }
         
         button { background-color: var(--primary); color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
         button:hover { background-color: var(--dark); }
         button:active { transform: translate(3px, 3px); box-shadow: none; }
 
-        /* Output Styling */
-        .schematic-box {
-            background: #fff;
-            border-left: 10px solid var(--accent);
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .english-sentence {
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 10px;
-            font-family: 'Georgia', serif;
-        }
-
+        .schematic-box { background: #fff; border-left: 10px solid var(--accent); padding: 20px; margin-top: 20px; }
+        .english-sentence { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-bottom: 10px; font-family: 'Georgia', serif; }
+        
+        /* فرمول ساده */
         .formula-display {
-            background: #2c3e50;
+            background: var(--dark);
             color: #ecf0f1;
             padding: 10px 15px;
             font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
             display: inline-block;
             direction: ltr;
             border-radius: 4px;
             margin-bottom: 15px;
+            font-weight: bold;
         }
 
-        .parts-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .part-item {
-            background: #eee;
-            border: 1px solid var(--dark);
-            padding: 5px 12px;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .parts-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .part-item { background: #eee; border: 1px solid var(--dark); padding: 5px 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
         .part-item b { color: var(--accent); }
 
         .loader { display: none; text-align: center; font-weight: bold; color: var(--accent); margin: 15px 0; }
-        
-        /* Debug Console */
-        .console {
-            background: #111;
-            color: #0f0;
-            font-family: 'Consolas', monospace;
-            padding: 10px;
-            font-size: 0.8rem;
-            height: 100px;
-            overflow-y: auto;
-            direction: ltr;
-        }
+        .console { background: #111; color: #0f0; font-family: 'Consolas', monospace; padding: 10px; font-size: 0.8rem; height: 100px; overflow-y: auto; direction: ltr; }
     </style>
 </head>
 <body>
@@ -106,8 +68,7 @@
 
     <div class="blueprint-card">
         <h1>کالبدشکافی فنی جمله</h1>
-        <p>جمله فارسی را وارد کنید تا نقشه مهندسی آن تولید شود:</p>
-        <textarea id="userInput" rows="3" placeholder="مثلاً: وقتی من رسیدم باران در حال باریدن بود"></textarea>
+        <textarea id="userInput" rows="3" placeholder="مثلاً: به تو گفته بودم"></textarea>
         <button onclick="generateBlueprint()">دریافت نقشه ساخت (Generate Blueprint)</button>
         <div id="loader" class="loader">در حال آنالیز مکانیکِ جمله...</div>
     </div>
@@ -119,7 +80,7 @@
                 <div class="english-sentence" id="engSent" dir="ltr"></div>
                 <div class="formula-display" id="formulaDisp"></div>
                 
-                <h3>قطعات اولیه (Spare Parts / Vocab)</h3>
+                <h3>قطعات اولیه (Vocab)</h3>
                 <div id="partsList" class="parts-list"></div>
             </div>
         </div>
@@ -144,17 +105,16 @@
         log("Initiating sequence for model: gemini-2.5-flash");
 
         const prompt = `
-        As a Linguistic Engineer, analyze the Persian sentence: "${text}".
-        Perform a structural deconstruction.
+        Analyze the Persian sentence: "${text}".
+        Perform a structural deconstruction focusing on time formulas.
         Return ONLY a JSON object:
         {
             "english": "The full English translation",
-            "formula": "The grammatical formula using LaTeX style or simple math (e.g. Had + V_pp ... V_ed)",
+            "formula": "A simple grammatical formula (e.g., Had + p.p, Verb + ed, Is + V-ing)",
             "vocab_parts": [
-                {"base": "arrive", "role": "Main Verb (Action)"},
-                {"base": "rain", "role": "Subject/Verb (State)"}
-            ],
-            "mechanism": "Short technical explanation of WHY this structure is used."
+                {"word": "word1", "role": "part of speech"},
+                {"word": "word2", "role": "part of speech"}
+            ]
         }`;
 
         try {
@@ -190,7 +150,7 @@
         data.vocab_parts.forEach(p => {
             const item = document.createElement('div');
             item.className = 'part-item';
-            item.innerHTML = `<b>${p.base}</b> : <i>${p.role}</i>`;
+            item.innerHTML = `<b>${p.word}</b> : <i>${p.role}</i>`;
             partsDiv.appendChild(item);
         });
     }
